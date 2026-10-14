@@ -5,7 +5,7 @@ See [README.md](README.md#installation) for the full install, configuration, mig
 Shortest Windows setup:
 
 ```powershell
-git clone https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills.git
+git clone https://github.com/impecme/Zotero-Analytical-Workflow-Skills.git
 cd Zotero-Analytical-Workflow-Skills
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1

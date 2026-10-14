@@ -8,6 +8,8 @@ Zotero → MinerU Fulltext → Analytical Notes → Knowledge → Literature Ret
 
 The repository is the canonical source for the complete workflow and for the Literature Retrieval Skill. New Vault content uses one layout: `01knowledge/`, `02vault/`, `03fulltext/`, and `模板/`. No tool requires the author's drive letters or private scripts.
 
+This fork adds **llm-for-zotero cache reuse at the Fulltext stage**: prefer an already parsed, validated plugin cache; otherwise use the original MinerU conversion. Metadata/annotation extraction, analytical writing, Knowledge maintenance, retrieval, and formal Vault validation are unchanged. The plugin and this workflow can share parsing results; this does not install Skills inside Zotero or automatically synchronize both stores.
+
 ## Requirements
 
 - Python 3.11 or newer. The bundled tools use only the Python standard library.
@@ -21,7 +23,7 @@ No Zotero database, PDF, private Vault content, API package, or credential is in
 ## Installation
 
 ```powershell
-git clone https://github.com/cheneternity/Zotero-Analytical-Workflow-Skills.git
+git clone https://github.com/impecme/Zotero-Analytical-Workflow-Skills.git
 cd Zotero-Analytical-Workflow-Skills
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -91,7 +93,21 @@ python tools/zotero_readonly_fetch.py --key ABCD1234
 
 The helper uses Zotero's local SQLite database in read-only mode and emits JSON with parent `zotero_key`, PDF attachment `pdf_key`, title, authors, year, DOI, collections, annotations, PDF path when resolvable, and `.zotero-ft-cache` path when present. It never edits the Zotero database. It discovers common Windows, macOS and Linux data directories; use `--data-dir` or `ZOTERO_DATA_DIR` if the Zotero profile is elsewhere. A locked/upgrading database returns a clear failure; retry after Zotero finishes syncing or use the Zotero API/export route.
 
-### Convert one PDF with MinerU (optional)
+### Prefer llm-for-zotero's parsed fulltext
+
+After selecting a Zotero paper, prepare its fulltext using the existing configuration:
+
+```powershell
+python tools/prepare_fulltext.py --key ABCD1234 --pdf-key EFGH5678
+```
+
+Use `--data-dir` to override the Zotero data directory and `--output` for a new staging directory. The helper resolves the exact PDF from the read-only Zotero database, then checks `<data-dir>/llm-for-zotero-mineru/<attachment-ID>/`. With several PDFs, `--pdf-key` is required. It checks the plugin source identity, parse time against PDF mtime, non-empty Markdown, image files and a stable snapshot. Valid caches are copied to staging unchanged, without running MinerU; invalid/missing caches fall back to the original runner, preserving its exit status. No live plugin API, cloud token, or new required configuration is needed for cache reuse.
+
+The supported cache format was checked against llm-for-zotero 3.9.11. Older, incomplete, restored-without-parse-time, or unrecognized caches may fall back. Parse time is only a freshness heuristic: the plugin does not attest the original PDF hash. A successful `PLUGIN_CACHE_REUSED` result is **not** a formal Fulltext or a completed ingest; the Archiver must still verify content, preserve images, add provenance and Note links, and run the existing validators. Details: [plugin cache contract](skills/zotero-fulltext-archiver/references/plugin-cache.md).
+
+Typical use: add/read/annotate a paper in Zotero with llm-for-zotero, then ask the agent to ingest that specified paper, preferring its plugin fulltext. This changes only fulltext acquisition; the plugin's AI answers are not treated as primary evidence.
+
+### Direct MinerU conversion (existing fallback)
 
 ```powershell
 python tools/run_mineru_production.py --input "E:\Papers\paper.pdf" --output "E:\ResearchVault\_staging\mineru\ABCD1234-run1"
