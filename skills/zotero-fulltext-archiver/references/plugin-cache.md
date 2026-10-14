@@ -29,12 +29,14 @@ python tools/prepare_fulltext.py --key ABCD1234 --pdf-key EFGH5678 --output /pat
   images/ 或其他图片子目录
 ```
 
-附件数字 ID 只用于在当前数据库定位缓存。`_llm_source.json` 的 `kind=llm-for-zotero/mineru-cache-source`、`version=1`，以及 `attachmentId`、`attachmentKey`、`parentItemKey`、`sourceFilename` 必须与当前数据库和 PDF 一致。数字 ID 不用作跨设备身份。
+附件数字 ID 只用于在当前数据库定位缓存。`_llm_source.json` 的 `kind=llm-for-zotero/mineru-cache-source`、`version=2`，以及 `attachmentId`、`attachmentKey`、`parentItemKey`、`sourceFilename` 必须与当前数据库和 PDF 一致。数字 ID 不用作跨设备身份。
 
 - 有 `_llm_write_pending.json`、空全文、缺失/无效来源或 manifest 时拒绝复用。
+- manifest 的 `totalChars` 必须匹配全文的 JavaScript UTF-16 长度，避免非空但截断的全文通过检查。章节的 `path` 是标题层级，不当作文件路径。
 - `parsedAt` 必须包含时区，且不早于 PDF 修改时间；只有 `recordedAt` 或 `restoredAt` 不足以证明原始解析时间。无法判断则保守回退。
 - 这是时效启发式，不是源 PDF 哈希证明。插件来源记录没有提供源 PDF 的 SHA-256；保留修改时间的 PDF 替换仍需人工检查或重新转换。运行记录中的 `sha256` 只是本次读取的 PDF 哈希。
 - 校验 Markdown 图片、manifest / content list 中的资源路径；缺图、空文件、外部图片、越界路径和链接目录拒绝复用。无法识别的 Markdown 图片语法也回退，不静默丢图。
+- 若插件已用 PDF 裁剪图替代并删除原图，而清单仍引用缺失原图，本适配保守回退；不猜测裁剪图与原图的替代关系。该缓存可能仍能在插件中使用，但尚不满足本适配的原图完整性要求。
 - 复制前后校验缓存文件哈希、写入标记和 PDF 哈希，拒绝处理过程中发生变化的缓存。
 
 ## 输出及正式归档

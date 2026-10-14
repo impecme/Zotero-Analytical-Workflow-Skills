@@ -39,15 +39,25 @@ class PluginFulltextTests(unittest.TestCase):
         (self.cache / "images").mkdir(parents=True)
         (self.cache / "images/figure.png").write_bytes(b"figure bytes")
         self.body = "# Paper\n\nOriginal findings.\n\n![Figure](images/figure.png)\n"
-        (self.cache / "full.md").write_text(self.body, encoding="utf-8")
+        (self.cache / "full.md").write_bytes(self.body.encode("utf-8"))
         self.provenance = {
-            "kind": "llm-for-zotero/mineru-cache-source", "version": 1,
+            "kind": "llm-for-zotero/mineru-cache-source", "version": 2,
             "attachmentId": 2, "attachmentKey": "PDFKEY01", "parentItemKey": "PARENT01",
             "sourceFilename": "paper.pdf", "parsedAt": "2024-01-01T00:00:00Z",
         }
         self.write_provenance()
-        (self.cache / "manifest.json").write_text(json.dumps({"sections": [{"figures": [{"path": "images/figure.png"}]}]}))
+        self.manifest = {
+            "sections": [{"heading": "Paper", "path": "Paper", "level": 1, "charStart": 0,
+                          "charEnd": len(self.body), "figures": [{"path": "images/figure.png"}], "tables": []}],
+            "totalChars": len(self.body), "totalPages": 1,
+            "allFigures": [{"path": "images/figure.png"}], "allTables": [],
+            "figureBlocks": [{"imagePaths": ["images/figure.png"]}], "structure": {"version": 2},
+        }
+        self.write_manifest()
         self.output = self.base / "staging"
+
+    def write_manifest(self):
+        (self.cache / "manifest.json").write_text(json.dumps(self.manifest))
 
     def write_provenance(self):
         (self.cache / "_llm_source.json").write_text(json.dumps(self.provenance))
@@ -110,7 +120,10 @@ class PluginFulltextTests(unittest.TestCase):
         self.assert_fallback("Missing")
 
     def test_manifest_only_image_is_checked(self):
-        (self.cache / "full.md").write_text("Original findings without image embeds.")
+        text = "Original findings without image embeds."
+        (self.cache / "full.md").write_text(text)
+        self.manifest["totalChars"] = len(text)
+        self.write_manifest()
         (self.cache / "images/figure.png").unlink()
         self.assert_fallback("Missing")
 
@@ -125,6 +138,28 @@ class PluginFulltextTests(unittest.TestCase):
     def test_invalid_provenance_falls_back(self):
         (self.cache / "_llm_source.json").write_text("[]")
         self.assert_fallback("provenance")
+
+    def test_unknown_provenance_version_falls_back(self):
+        self.provenance["version"] = 99
+        self.write_provenance()
+        self.assert_fallback("provenance")
+
+    def test_truncated_markdown_falls_back(self):
+        (self.cache / "full.md").write_text("Truncated.")
+        self.assert_fallback("text length mismatch")
+
+    def test_figure_block_image_is_checked(self):
+        self.manifest["figureBlocks"] = [{"imagePaths": ["images/absent.png"]}]
+        self.write_manifest()
+        self.assert_fallback("Missing")
+
+    def test_utf16_length_matches_javascript_with_unicode_and_crlf(self):
+        text = self.body.replace("\n", "\r\n") + "\U0001f52c"
+        (self.cache / "full.md").write_bytes(text.encode("utf-8"))
+        self.manifest["totalChars"] = len(text) + 1
+        self.write_manifest()
+        self.assertEqual(self.run_main(), 0)
+        self.assertEqual((self.output / "raw/full.md").read_bytes(), text.encode("utf-8"))
 
     def test_existing_output_is_never_overwritten(self):
         self.output.mkdir()

@@ -76,16 +76,21 @@ def check_asset(root: Path, reference: str) -> None:
         raise CacheRejected("Missing, empty or escaping image: " + reference)
 
 
-def check_manifest_assets(root: Path, value) -> None:
+def check_resource_assets(root: Path, value) -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             if key in ("path", "img_path") and isinstance(child, str) and child:
                 check_asset(root, child)
+            elif key == "imagePaths" and isinstance(child, list):
+                for reference in child:
+                    if not isinstance(reference, str):
+                        raise CacheRejected("Invalid figure block image path")
+                    check_asset(root, reference)
             else:
-                check_manifest_assets(root, child)
+                check_resource_assets(root, child)
     elif isinstance(value, list):
         for child in value:
-            check_manifest_assets(root, child)
+            check_resource_assets(root, child)
 
 
 def validate_cache(cache: Path, identity: dict) -> dict[str, str]:
@@ -107,7 +112,7 @@ def validate_cache(cache: Path, identity: dict) -> dict[str, str]:
         if path.is_file():
             files[path.relative_to(cache).as_posix()] = digest(path)
     provenance = read_json(cache / "_llm_source.json")
-    if not isinstance(provenance, dict) or provenance.get("kind") != "llm-for-zotero/mineru-cache-source" or provenance.get("version") != 1:
+    if not isinstance(provenance, dict) or provenance.get("kind") != "llm-for-zotero/mineru-cache-source" or provenance.get("version") != 2:
         raise CacheRejected("Unsupported plugin provenance")
     expected = {"attachmentId": identity["attachment_id"], "attachmentKey": identity["pdf_key"], "parentItemKey": identity["zotero_key"]}
     if any(provenance.get(k) != v for k, v in expected.items()):
@@ -122,7 +127,7 @@ def validate_cache(cache: Path, identity: dict) -> dict[str, str]:
         raise CacheRejected("Invalid cache parse time")
     if identity["pdf"].stat().st_mtime > parsed.timestamp():
         raise CacheRejected("PDF is newer than plugin cache")
-    markdown = (cache / "full.md").read_text(encoding="utf-8-sig")
+    markdown = (cache / "full.md").read_bytes().decode("utf-8-sig")
     if not markdown.strip():
         raise CacheRejected("Plugin Markdown is empty")
     # Unsupported image syntax must fall back, never silently lose images.
@@ -140,9 +145,18 @@ def validate_cache(cache: Path, identity: dict) -> dict[str, str]:
     manifest = read_json(cache / "manifest.json")
     if not isinstance(manifest, dict) or not isinstance(manifest.get("sections"), list):
         raise CacheRejected("Missing or unsupported plugin manifest")
-    check_manifest_assets(cache, manifest)
+    if manifest.get("totalChars") != len(markdown.encode("utf-16-le")) // 2:
+        raise CacheRejected("Plugin manifest text length mismatch")
+    # sections[].path is a heading breadcrumb, not a filesystem path.
+    for key in ("allFigures", "allTables", "figureBlocks"):
+        check_resource_assets(cache, manifest.get(key, []))
+    for section in manifest["sections"]:
+        if not isinstance(section, dict):
+            raise CacheRejected("Invalid manifest section")
+        for key in ("figures", "tables"):
+            check_resource_assets(cache, section.get(key, []))
     if (cache / "content_list.json").is_file():
-        check_manifest_assets(cache, read_json(cache / "content_list.json"))
+        check_resource_assets(cache, read_json(cache / "content_list.json"))
     return files
 
 
