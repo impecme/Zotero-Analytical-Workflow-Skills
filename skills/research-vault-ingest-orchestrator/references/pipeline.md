@@ -23,3 +23,7 @@ Accept a paper only when the user identifies it by Zotero item, `zotero_key`, a 
 | Structured paper understanding | `zotero-analytical-writer` | Note template and writing logic |
 | Cross-paper synthesis | `research-vault-knowledge-maintainer` | Frozen schema, templates, claims and gaps |
 | Later user questions | `research-vault-literature-retrieval` | Ingest execution |
+
+## Required Zotero file-sync gate
+
+After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified linked Markdown attachment under the stable parent item. A missing/stale attachment requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live attachment and current file, not only a historical receipt.

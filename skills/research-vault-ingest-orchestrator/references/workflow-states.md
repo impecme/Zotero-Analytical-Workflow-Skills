@@ -4,7 +4,7 @@ These states describe process progress only. They do not replace evidence roles,
 
 | State | Meaning | Next action |
 | --- | --- | --- |
-| `ALREADY_COMPLETE` | All required artifacts and prior Knowledge decision are valid | No write |
+| `ALREADY_COMPLETE` | All required artifacts, live Zotero Analytical Note attachment and prior Knowledge decision are valid | No write |
 | `FULLTEXT_CREATED` | Formal Fulltext was newly archived and passed its gate | Continue to Note/pair checks |
 | `NOTE_CREATED` | Formal Analytical Note was newly created | Continue to pair/Knowledge checks |
 | `NOTE_TEMPLATE_REPAIRED` | Existing Analytical Note was normalized to the canonical template without changing its stable identity | Continue to pair/Knowledge checks |
@@ -18,3 +18,5 @@ These states describe process progress only. They do not replace evidence roles,
 | `VALIDATION_FAILED` | A required contract check failed | Fix only the failing artifact and revalidate |
 | `SCHEMA_REVIEW_REQUIRED` | Evidence cannot be represented by frozen schema | Stop Knowledge write pending explicit migration |
 | `MANUAL_REVIEW_REQUIRED` | A non-guessable conflict or ambiguity remains | Request clarification |
+| `ZOTERO_NOTE_SYNCED` | Analytical Note linked file verified under its Zotero parent | Continue final validation/log |
+| `ZOTERO_NOTE_SYNC_DEFERRED` | File-sync unavailable or failed; reading artifacts retained | Retry only file-sync; no full completion claim |

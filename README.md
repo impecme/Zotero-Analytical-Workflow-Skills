@@ -8,11 +8,17 @@ Zotero → MinerU Fulltext → Analytical Notes → Knowledge → Literature Ret
 
 The repository is the canonical source for the complete workflow and for the Literature Retrieval Skill. New Vault content uses one layout: `01knowledge/`, `02vault/`, `03fulltext/`, and `模板/`. No tool requires the author's drive letters or private scripts.
 
-This fork adds **llm-for-zotero cache reuse at the Fulltext stage**: prefer an already parsed, validated plugin cache; otherwise use the original MinerU conversion. Metadata/annotation extraction, analytical writing, Knowledge maintenance, retrieval, and formal Vault validation are unchanged. The plugin and this workflow can share parsing results; this does not install Skills inside Zotero or automatically synchronize both stores.
+This fork adds **llm-for-zotero cache reuse at the Fulltext stage**: prefer an already parsed, validated plugin cache; otherwise use the original MinerU conversion. It also links the validated **Obsidian Analytical Note Markdown back to its Zotero parent item**. Repeated runs reuse the same attachment; missing authorization leaves a retryable sync state without repeating reading or conversion. This does not install Skills inside Zotero.
+
+## Analytical Note attachments in Zotero
+
+After Note/Fulltext validation, the workflow uses `tools/sync_analytical_note.py` with the stable parent item key to create or update a linked Markdown attachment. Obsidian remains the authoritative file; editing it does not require copying the text into Zotero. Duplicate attachment identities stop for review, and successful writes are read back and recorded under `01knowledge/.meta/zotero-note-sync/`.
+
+See the [file-sync stage](skills/research-vault-ingest-orchestrator/references/zotero-note-sync.md) for invocation and existing local API authorization requirements. The helper currently supports Zotero Desktop's local user library. Linked files are opened by the system Markdown application and are **not uploaded by Zotero file sync**. Existing papers need only the missing attachment stage, not a full re-ingest.
 
 ## Requirements
 
-- Python 3.11 or newer. The bundled tools use only the Python standard library.
+- Python 3.11 or newer. The Analytical Note attachment helper additionally requires PyYAML (`python -m pip install PyYAML`); the other bundled tools use the Python standard library.
 - Zotero Desktop if reading the local Zotero database or attachments.
 - MinerU is optional; install it separately if PDF conversion is required. The conversion runner accepts the executable path in configuration.
 - Obsidian is optional for editing and navigating Markdown. Dataview is optional for users whose own index pages use Dataview.

@@ -73,3 +73,7 @@ Process Log
 ## 日志
 
 每篇论文完成一个阶段后立即记录 Item Key、标题、时间、状态、原因和路径；不要只记录“存在笔记”。Collection Manager 的报告应区分新增成功、部分完成、失败和待人工确认。
+
+## 精读文件同步到 Zotero
+
+通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 作为链接附件挂到对应父论文。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺此附件时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。
