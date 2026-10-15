@@ -25,6 +25,6 @@ When Knowledge is updated or re-evaluated, run the project's Knowledge validator
 
 Claim-level `fulltext_verified` remains invalid unless the particular claim has the chain Note → declared `03fulltext/...` `fulltext_path` → targeted Fulltext verification. Page-level `evidence_status` uses only `fulltext_verified`, `note_only`, or `mixed`. A failed contract yields `VALIDATION_FAILED`, not success.
 
-## Required Zotero file-sync gate
+## Required Zotero native-note sync gate
 
-After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified linked Markdown attachment under the stable parent item. A missing/stale attachment requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live attachment and current file, not only a historical receipt.
+After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified native child note under the stable parent item. A missing/stale native note requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live native note and current file, not only a historical receipt.

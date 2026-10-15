@@ -40,7 +40,7 @@ SPECIFIED PAPER
   -> NOTE/FULLTEXT PAIR VALIDATION
   -> KNOWLEDGE INGEST DECISION
   -> KNOWLEDGE UPDATE OR NO_KNOWLEDGE_CHANGE
-  -> ZOTERO ANALYTICAL NOTE FILE SYNC
+  -> ZOTERO NATIVE ANALYTICAL NOTE SYNC
   -> FINAL VALIDATION
   -> APPEND-ONLY LOG
 ```
@@ -62,12 +62,12 @@ Use exactly one mode for each request:
 
 | Observed state | Required action |
 | --- | --- |
-| Zotero linked Analytical Note attachment is read-back verified, Note, Fulltext and Knowledge coverage are valid, and the Note conforms to the canonical template | `ALREADY_COMPLETE`; do not reprocess. |
+| Zotero native Analytical Note is read-back verified, Note, Fulltext and Knowledge coverage are valid, and the Note conforms to the canonical template | `ALREADY_COMPLETE`; do not reprocess. |
 | Note and Fulltext are valid, but the Note does not conform to the canonical template | Run only the Analytical Note gate in template-repair mode; preserve the same Note path and identity, then revalidate. |
 | Note exists but Fulltext is missing/invalid | Run only the Fulltext gate, then reconsider Knowledge. |
 | Fulltext exists but Note is missing | Run only the Analytical Note gate. |
 | Note and Fulltext are valid but Knowledge has not considered the paper | Run only the Knowledge decision. |
-| Note/Fulltext and Knowledge are valid but Zotero has no current Analytical Note file attachment | Run only the Zotero file-sync gate and read-back verification. |
+| Note/Fulltext and Knowledge are valid but Zotero has no current native Analytical Note | Run only the Zotero native-note sync gate and read-back verification. |
 | Required artifacts are absent | Run the necessary stages in order. |
 
 `NO_KNOWLEDGE_CHANGE` is a successful Knowledge-decision outcome: it means that the new, validated paper adds no durable claim, condition, mechanism, boundary, direct evidence, challenge, or justified synthesis change.
@@ -99,6 +99,6 @@ Completion requires the final validator and the template/coverage audit to pass.
 - [Workflow states](references/workflow-states.md)
 - [Validation contract](references/validation-contract.md)
 
-## Zotero 精读文件回挂（必需）
+## Zotero 精读原生子笔记同步（必需）
 
-按 [references/zotero-note-sync.md](references/zotero-note-sync.md) 将通过校验的 Obsidian 精读 Markdown 挂到对应论文下。完成条件包括唯一附件的读回核验；失败标记 `ZOTERO_NOTE_SYNC_DEFERRED`，不能报完整成功。此阶段也适用于既有笔记更新。
+按 [references/zotero-note-sync.md](references/zotero-note-sync.md) 将通过校验的 Obsidian 精读 Markdown 转换为对应论文的 Zotero 原生子笔记。完成条件包括唯一原生子笔记的读回与显示核验；失败标记 `ZOTERO_NOTE_SYNC_DEFERRED`，不能报完整成功。此阶段也适用于既有笔记更新。

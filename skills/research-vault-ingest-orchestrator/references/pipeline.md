@@ -12,7 +12,8 @@ Accept a paper only when the user identifies it by Zotero item, `zotero_key`, a 
 4. **Analytical Note gate** — reuse a valid formal Note only if its identity, source links, and structure conform to the canonical template; otherwise use `zotero-analytical-writer` in create or same-path template-repair mode after sufficient source material is available.
 5. **Pair validation** — require reciprocal Note/Fulltext paths and matching `zotero_key` and `pdf_key`; validate image links where Fulltext exists.
 6. **Knowledge decision** — call `research-vault-knowledge-maintainer` only with the completed Note and evidence state. It decides whether existing Knowledge is strengthened, conditioned, bounded, challenged, newly supported, or unchanged.
-7. **Final validation and log** — validate Note-template conformance, quotation/page evidence, reciprocal links, and images; run a project Knowledge validator when one exists, otherwise perform and report the manual checks, then append the human-readable log event only if the applicable contract passes.
+7. **Zotero native-note sync** — convert the validated Analytical Note to a unique native child note, verify math/tables and read back its identity/content; migrate only managed old Markdown links after success. Follow [zotero-note-sync.md](zotero-note-sync.md).
+8. **Final validation and log** — validate Note-template conformance, quotation/page evidence, reciprocal links, images and native-note synchronization; run a project Knowledge validator when one exists, otherwise perform and report the manual checks, then append the human-readable log event only if the applicable contract passes.
 
 ## Delegation map
 
@@ -24,6 +25,6 @@ Accept a paper only when the user identifies it by Zotero item, `zotero_key`, a 
 | Cross-paper synthesis | `research-vault-knowledge-maintainer` | Frozen schema, templates, claims and gaps |
 | Later user questions | `research-vault-literature-retrieval` | Ingest execution |
 
-## Required Zotero file-sync gate
+## Required Zotero native-note sync gate
 
-After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified linked Markdown attachment under the stable parent item. A missing/stale attachment requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live attachment and current file, not only a historical receipt.
+After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified native child note under the stable parent item. A missing/stale native note requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live native note and current file, not only a historical receipt.

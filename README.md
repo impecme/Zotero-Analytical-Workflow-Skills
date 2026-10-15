@@ -8,17 +8,19 @@ Zotero → MinerU Fulltext → Analytical Notes → Knowledge → Literature Ret
 
 The repository is the canonical source for the complete workflow and for the Literature Retrieval Skill. New Vault content uses one layout: `01knowledge/`, `02vault/`, `03fulltext/`, and `模板/`. No tool requires the author's drive letters or private scripts.
 
-This fork adds **llm-for-zotero cache reuse at the Fulltext stage**: prefer an already parsed, validated plugin cache; otherwise use the original MinerU conversion. It also links the validated **Obsidian Analytical Note Markdown back to its Zotero parent item**. Repeated runs reuse the same attachment; missing authorization leaves a retryable sync state without repeating reading or conversion. This does not install Skills inside Zotero.
+This fork reuses validated **llm-for-zotero parsing caches** before a new MinerU conversion, then publishes validated **Obsidian Analytical Notes as native Zotero child notes**. Open the child note directly in Zotero; Obsidian remains the authoritative editable source.
 
-## Analytical Note attachments in Zotero
+## Native Analytical Notes in Zotero
 
-After Note/Fulltext validation, the workflow uses `tools/sync_analytical_note.py` with the stable parent item key to create or update a linked Markdown attachment. Obsidian remains the authoritative file; editing it does not require copying the text into Zotero. Duplicate attachment identities stop for review, and successful writes are read back and recorded under `01knowledge/.meta/zotero-note-sync/`.
+`tools/sync_analytical_note.py` converts Markdown headings, lists, tables, links and LaTeX math into Zotero note HTML. Each generated note includes an Obsidian source link. Repeated runs update the same child note, while edits made directly in Zotero trigger conflict protection rather than being silently overwritten.
 
-See the [file-sync stage](skills/research-vault-ingest-orchestrator/references/zotero-note-sync.md) for invocation and existing local API authorization requirements. The helper currently supports Zotero Desktop's local user library. Linked files are opened by the system Markdown application and are **not uploaded by Zotero file sync**. Existing papers need only the missing attachment stage, not a full re-ingest.
+After native-note verification, the helper moves its old tagged Markdown link attachment to Zotero Trash; the actual Obsidian file remains untouched. `--keep-linked-files` retains the old link if needed. Unrelated notes and attachments are preserved. Images currently require a separate native import capability: the helper defers rather than dropping embedded images.
+
+See the [native-note sync stage](skills/research-vault-ingest-orchestrator/references/zotero-note-sync.md) for dependencies, existing authorization, migration, rendering checks and explicit conflict resolution. The helper supports Zotero Desktop's local user library. Missing authorization leaves a retryable sync state, without repeating fulltext conversion or reading. Local publication does not by itself prove account/cloud synchronization.
 
 ## Requirements
 
-- Python 3.11 or newer. The Analytical Note attachment helper additionally requires PyYAML (`python -m pip install PyYAML`); the other bundled tools use the Python standard library.
+- Python 3.11 or newer. The native-note helper additionally requires PyYAML, markdown-it-py and mdit-py-plugins (`python -m pip install PyYAML markdown-it-py mdit-py-plugins`); the other bundled tools use the Python standard library.
 - Zotero Desktop if reading the local Zotero database or attachments.
 - MinerU is optional; install it separately if PDF conversion is required. The conversion runner accepts the executable path in configuration.
 - Obsidian is optional for editing and navigating Markdown. Dataview is optional for users whose own index pages use Dataview.

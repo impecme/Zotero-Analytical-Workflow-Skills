@@ -22,6 +22,8 @@ Analytical Writer
   ↓
 Link Validation
   ↓
+Zotero Native Note Sync
+  ↓
 Dataview Refresh（仅需要时）
   ↓
 Process Log
@@ -54,6 +56,7 @@ Process Log
   "images_valid": true,
   "note": true,
   "linked": true,
+  "zotero_native_note_synced": true,
   "page_mapping": "unknown",
   "indexes_refreshed": false
 }
@@ -61,7 +64,8 @@ Process Log
 
 核心状态：
 
-- `COMPLETE`：`pdf_found && fulltext && images_valid && note && linked` 全部为真。PDF 可通过当前 agent 确认有效的远端附件引用访问，不要求本地文件路径。
+- `COMPLETE`：`pdf_found && fulltext && images_valid && note && linked && zotero_native_note_synced` 全部为真。原生笔记须读回核验，旧回执不能代替当前状态。PDF 可通过当前 agent 确认有效的远端附件引用访问，不要求本地文件路径。
+- `ZOTERO_NOTE_SYNC_DEFERRED` / `ZOTERO_NOTE_SYNC_CONFLICT`：其他阅读成果保留，仅重试同步或先解决原生笔记冲突。
 - `PARTIAL_FULLTEXT_MISSING`：Note 存在但 Fulltext 未建立。
 - `PARTIAL_NOTE_MISSING`：Fulltext 存在但 Note 未建立。
 - `IMAGES_INVALID`：全文存在但有图片缺失或错误引用。
@@ -74,6 +78,6 @@ Process Log
 
 每篇论文完成一个阶段后立即记录 Item Key、标题、时间、状态、原因和路径；不要只记录“存在笔记”。Collection Manager 的报告应区分新增成功、部分完成、失败和待人工确认。
 
-## 精读文件同步到 Zotero
+## 精读原生子笔记同步到 Zotero
 
-通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 作为链接附件挂到对应父论文。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺此附件时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。
+通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 转换为对应父论文的原生子笔记。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺原生子笔记时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。

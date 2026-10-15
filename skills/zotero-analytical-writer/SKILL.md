@@ -75,6 +75,6 @@ New Analytical Notes are written only to `02vault/<collection>/<paper>.md`; new 
 2. 在基本信息区的链接行加入 `全文 Markdown：[[03fulltext/<collection>/<zotero_key>]]`（路径存在时），并保留可验证的 Zotero 入口。
 3. 新建论文笔记时才刷新四个根 Dataview 索引；更新既有 Note 不触发全库批量重写，但若标题、路径或索引字段变化，定向刷新受影响索引。
 
-## 精读文件同步到 Zotero
+## 精读原生子笔记同步到 Zotero
 
-通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 作为链接附件挂到对应父论文。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺此附件时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。
+通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 转换为对应父论文的原生子笔记。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺原生子笔记时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。

@@ -12,6 +12,6 @@
 
 An unavailable Fulltext may preserve a Note-only result, but it cannot upgrade a claim to `fulltext_verified`.
 
-## Required Zotero file-sync gate
+## Required Zotero native-note sync gate
 
-After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified linked Markdown attachment under the stable parent item. A missing/stale attachment requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live attachment and current file, not only a historical receipt.
+After the Analytical Note and pair checks pass, before final completion/logging, follow [zotero-note-sync.md](zotero-note-sync.md). Require exactly one verified native child note under the stable parent item. A missing/stale native note requires only this gate; unavailable write capability is `ZOTERO_NOTE_SYNC_DEFERRED`, not complete. Validate the live native note and current file, not only a historical receipt.
