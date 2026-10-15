@@ -39,6 +39,16 @@ python tools/prepare_fulltext.py --key ABCD1234 --pdf-key EFGH5678 --output /pat
 - 若插件已用 PDF 裁剪图替代并删除原图，而清单仍引用缺失原图，本适配保守回退；不猜测裁剪图与原图的替代关系。该缓存可能仍能在插件中使用，但尚不满足本适配的原图完整性要求。
 - 复制前后校验缓存文件哈希、写入标记和 PDF 哈希，拒绝处理过程中发生变化的缓存。
 
+## 数据库锁回退与只读预检
+
+`prepare_fulltext.py` 仅在 SQLite 返回 BUSY/LOCKED 时，回退到固定 loopback 地址的本地 Zotero API。仅使用 GET，禁用代理和 HTTP 跳转；其他 SQLite 错误不会静默回退。API 核验所有本地可见库中的唯一父 Key、附件父子关系、库身份及本地 PDF URL，并检查核验期间对象是否改变。
+
+本回退支持配置数据目录 storage 下的托管 PDF。链接附件无法在本回退中证明数据目录归属时停止，不按标题猜测路径。API 不提供附件数字 ID；先以 API 独立核验身份，再以父/附件 Key 匹配缓存来源元数据。无唯一缓存时保留原转换回退，身份失败则禁止转换。
+
+入口现在要求配置的 vault_root 已具有 01knowledge、02vault、03fulltext 布局。暂存目录不得位于 Zotero 数据目录或正式 Vault 内。发现已有 `03fulltext/**/<key>.md` 时返回 `EXISTING_FULLTEXT`，不转换、不覆写；调用方须继续验证既有全文、笔记和知识覆盖，不能仅凭文件存在宣称 `ALREADY_COMPLETE`。修复既有坏全文需显式规划，不自动覆盖。
+
+可追加 `--check-only` 仅执行身份和 Vault 预检，不创建暂存目录或启动转换。错误的父目录会被布局检查拒绝；两个均具有合法布局的 Vault 之间，仍需调用方使用用户已确认的目标配置。
+
 ## 输出及正式归档
 
 成功复用时返回 `PLUGIN_CACHE_REUSED`，在新暂存目录生成 `raw/`（保持全文字节与资源相对路径）和 `production-status.json`。记录来源、父/附件 Key、缓存文件哈希及检查限制。此状态只表示全文材料已准备，**不等于论文入库完成或全文证据已经人工核验**。

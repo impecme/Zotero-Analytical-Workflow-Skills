@@ -21,6 +21,7 @@ from uuid import uuid4
 from config import configured_path, load_config
 from run_mineru_production import digest, timestamp
 from zotero_readonly_fetch import discover_data_dir
+from zotero_identity_api import resolve_pdf_api
 
 
 class CacheRejected(ValueError):
@@ -28,8 +29,20 @@ class CacheRejected(ValueError):
 
 
 def resolve_pdf(data_dir: Path, key: str, pdf_key: str | None) -> dict:
+    if not re.fullmatch(r"[A-Z0-9]{8}", key) or (pdf_key and not re.fullmatch(r"[A-Z0-9]{8}", pdf_key)):
+        raise ValueError("Expected eight-character Zotero item keys")
+    try:
+        return resolve_pdf_sqlite(data_dir, key, pdf_key)
+    except sqlite3.OperationalError as exc:
+        code = getattr(exc, "sqlite_errorcode", 0) & 0xff
+        if code not in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED):
+            raise
+        return resolve_pdf_api(data_dir, key, pdf_key)
+
+
+def resolve_pdf_sqlite(data_dir: Path, key: str, pdf_key: str | None) -> dict:
     """Resolve identity using Zotero's real schema, never a directory/title guess."""
-    database = data_dir / "zotero.sqlite"
+    database = data_dir.resolve() / "zotero.sqlite"
     with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=5)) as db:
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA query_only = ON")
@@ -204,8 +217,12 @@ def main() -> int:
     parser.add_argument("--mineru", type=Path)
     parser.add_argument("--method", choices=("auto", "txt", "ocr"), default="auto")
     parser.add_argument("--timeout", type=int, default=3600)
+    parser.add_argument("--check-only", action="store_true", help="verify identity and preflight without staging or conversion")
     args = parser.parse_args()
     settings = load_config(args.config)
+    vault = configured_path("vault_root", settings)
+    if vault is None or not all((vault / name).is_dir() for name in ("01knowledge", "02vault", "03fulltext")):
+        parser.error("Configured vault_root must contain 01knowledge, 02vault and 03fulltext; no files written")
     data = args.data_dir or configured_path("zotero_data_dir", settings) or discover_data_dir()
     if data is None:
         parser.error("Zotero data directory not found; set --data-dir")
@@ -213,6 +230,15 @@ def main() -> int:
         identity = resolve_pdf(data.expanduser().resolve(), args.key, args.pdf_key)
     except (OSError, ValueError, sqlite3.Error) as exc:
         parser.error(str(exc))
+    existing = list((vault / "03fulltext").rglob(args.key + ".md"))
+    if existing:
+        print(json.dumps({"status": "EXISTING_FULLTEXT", "zotero_key": args.key,
+                          "paths": [str(p) for p in existing],
+                          "next": "Validate existing Note/Fulltext/Knowledge; do not re-convert or claim complete solely from file existence"}))
+        return 0
+    if args.check_only:
+        print(json.dumps({"status": "IDENTITY_VERIFIED", **identity}, default=str))
+        return 0
     archive = configured_path("archive_root", settings)
     output = args.output or (archive / f"{identity['pdf_key']}-{uuid4().hex[:12]}" if archive else None)
     if output is None:
@@ -220,12 +246,18 @@ def main() -> int:
     output = output.expanduser().resolve()
     if output.is_relative_to(data.expanduser().resolve()):
         parser.error("staging output must be outside the Zotero data directory")
+    if output.is_relative_to(vault) or vault.is_relative_to(output):
+        parser.error("staging output must be separate from the formal Vault")
+    if identity["pdf"].is_relative_to(output):
+        parser.error("staging output must not contain the source PDF")
     if output.exists():
         parser.error("output already exists; refusing to overwrite")
     if args.timeout <= 0:
         parser.error("timeout must be positive")
     cache = data.expanduser().resolve() / "llm-for-zotero-mineru" / str(identity["attachment_id"])
     try:
+        if identity["attachment_id"] is None:
+            raise CacheRejected("No unique cache metadata matches the API-verified attachment")
         stage_cache(cache, identity, output)
     except (OSError, ValueError) as exc:
         if output.exists():

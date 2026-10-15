@@ -23,6 +23,11 @@ class PluginFulltextTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
+        self.vault = self.base / "vault"
+        for name in ("01knowledge", "02vault", "03fulltext"):
+            (self.vault / name).mkdir(parents=True)
+        self.config = self.base / "config.toml"
+        self.config.write_text('[paths]\nvault_root = "' + self.vault.as_posix() + '"\n')
         self.data = self.base / "Zotero"
         self.pdf = self.data / "storage/PDFKEY01/paper.pdf"
         self.pdf.parent.mkdir(parents=True)
@@ -63,7 +68,7 @@ class PluginFulltextTests(unittest.TestCase):
         (self.cache / "_llm_source.json").write_text(json.dumps(self.provenance))
 
     def argv(self):
-        return ["prepare_fulltext", "--key", "PARENT01", "--data-dir", str(self.data), "--output", str(self.output)]
+        return ["prepare_fulltext", "--key", "PARENT01", "--data-dir", str(self.data), "--output", str(self.output), "--config", str(self.config)]
 
     def run_main(self, extra=()):
         with mock.patch.object(sys, "argv", self.argv() + list(extra)), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
