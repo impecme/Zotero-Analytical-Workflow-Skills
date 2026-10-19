@@ -58,6 +58,33 @@ The checker is read-only. Zotero, MinerU and `rg` are optional capabilities and 
 
 ## Configuration
 
+### Install the seven workflow Skills into Codex
+
+Keep the checkout at its final location, then run:
+
+```sh
+python tools/install_codex_skills.py
+```
+
+The installer uses `CODEX_HOME` (default `~/.codex`) and accepts `--skills-dir`
+for another installation directory. It copies only the seven bundled Skills and
+generates local bindings to this checkout's tools, templates and configuration.
+Personal absolute paths appear only in the installed copies, never in repository
+sources. Keep the checkout available after installation.
+
+Existing Skills cause the installer to stop before writing anything. For an
+upgrade, install into a separate empty directory, compare with your current
+Skills, and back up and merge any customizations before replacing them. Moving
+the checkout requires regenerating the local bindings. This does not configure
+Zotero authorization or install Zotero, Obsidian, MinerU, or the optional
+llm-for-zotero cache producer; retain those applications and credentials locally.
+
+The analytical writer includes design-necessity checks, worked numerical
+examples for applicable formulas, and claim/evidence/gap analysis within the
+existing Note template. See the [local/cloud reconciliation report](docs/validation/2026-10-19-workflow-reconciliation.md).
+
+### Local runtime paths
+
 Copy [`config.example.toml`](config.example.toml) or let the initializer create `config.toml`. Paths are local filesystem paths; use TOML strings and forward slashes for portable examples:
 
 ```toml

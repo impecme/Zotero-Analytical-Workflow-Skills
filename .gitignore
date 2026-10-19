@@ -3,3 +3,24 @@ config.toml
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Device configuration, authorization and research outputs stay local.
+local-installation.json
+.env
+.env.*
+!.env.example
+localAPIKeys.json
+*auth*.json
+credentials*.json
+*.key
+*.pem
+*.sqlite*
+*.pdf
+/ResearchVault/
+/01knowledge/
+/02vault/
+/03fulltext/
+/04resources/
+/staging/
+/output/
+/backups/
