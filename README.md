@@ -179,6 +179,8 @@ The validators and retrieval instructions can read historical `fulltext/` links 
 
 ## Troubleshooting
 
+方法概述统一保留 Mermaid 流程图。Obsidian 可将其显示为图形；当前 Zotero 原生子笔记同步保留 Mermaid 源码代码块及主稿入口，不渲染成图，也不自动生成图片。精读完成后仍会按身份校验、去重和冲突保护规则创建或更新原生子笔记；这不是 Obsidian 文件变更后的后台实时同步。
+
 | Symptom | What to check |
 |---|---|
 | Zotero PDF not found | Confirm the parent `zotero_key`, the attachment's `pdf_key`, `storage/<pdf_key>/`, and whether the attachment is linked externally. The helper reports only files that exist. |
