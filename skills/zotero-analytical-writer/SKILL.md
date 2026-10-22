@@ -93,7 +93,7 @@ New Analytical Notes are written only to `02vault/<collection>/<paper>.md`; new 
 ## 内容与格式约束
 
 - `theme` 概括研究问题；`study_area`、`data_source`、`methodology`、`core_variable`、`key_finding`、`relevance` 必须来自真实材料，不复制大段摘要。
-- 过滤作者地址、单位、邮编、邮箱、基金号和排版垃圾；数据与方法缺失时如实说明。
+- 过滤详细邮寄地址、邮编、邮箱、基金号和排版垃圾；署名单位保留在基本信息中；数据与方法缺失时如实说明。
 - 公式仅在原文可靠时保留；乱码或残片不强行解释，也不为占位符生成符号拆解。
 - 写入前检查 YAML、美元符号配对、`zotero://select/...` 和 PDF/Fulltext 入口。
 - 写入前检查标题层级、模板占位符是否清除、结论是否成对、公式是否闭合，以及 `fulltext_path` 与 Note↔Fulltext 双向入口是否存在。
@@ -109,3 +109,7 @@ New Analytical Notes are written only to `02vault/<collection>/<paper>.md`; new 
 ## 精读原生子笔记同步到 Zotero
 
 通过 Note/Fulltext 身份和内容校验后，使用仓库 `tools/sync_analytical_note.py` 把 Obsidian 精读 Markdown 转换为对应父论文的原生子笔记。遵循 `research-vault-ingest-orchestrator/references/zotero-note-sync.md` 的去重、既有授权和读回规则。每次新建或更新精读后都检查；历史完整条目缺原生子笔记时只补同步。同步失败记录 `ZOTERO_NOTE_SYNC_DEFERRED`，保留已完成阅读但不报全流程成功。不自动批量处理无关历史论文。
+
+## 作者单位
+
+基本信息两列表格在“作者”之后保留“单位”栏。依据当前论文署名页记录大学、学院、系、研究所、实验室或公司，并保留原文明确给出的层级；多单位时去重并在必要时注明作者对应关系。使用论文发表时的署名单位，不根据作者现职、邮箱或常识推测。原文仅列大学就不补写学院或实验室；未列明时写“当前原文未列明”，材料不可访问时写“待核实”。机构信息不作为排版垃圾删除；详细邮寄地址、邮编、邮箱等仍可省略。
